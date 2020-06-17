@@ -1,20 +1,8 @@
 {
-  "extends": [
-    "prettier"
-  ],
   "parser": "babel-eslint",
-  "parserOptions": {
-    "sourceType": "module"
-  },
-  "plugins": [
-    "flowtype",
-    "prettier",
-    "react"
-  ],
+  "plugins": ["react"],
+  "extends": ["fbjs", "eslint:recommended", "plugin:prettier/recommended"],
   "rules": {
-    "no-unused-vars": [ERROR, {"args": "all", "argsIgnorePattern": "^_"}],
-    "react/jsx-uses-react": ERROR,
-    "react/jsx-uses-vars": ERROR,
-    "prettier/prettier": ERROR
+    "no-console": 0
   }
 }

@@ -1,23 +1,23 @@
 /** @flow */
-import Immutable from "immutable";
-import PropTypes from "prop-types";
-import React, { PureComponent } from "react";
+import Immutable from 'immutable';
+import PropTypes from 'prop-types';
+import * as React from 'react';
 import {
   ContentBox,
   ContentBoxHeader,
-  ContentBoxParagraph
-} from "../demo/ContentBox";
-import { LabeledInput, InputRow } from "../demo/LabeledInput";
-import { CellMeasurer, CellMeasurerCache } from "../CellMeasurer";
-import AutoSizer from "../AutoSizer";
-import WindowScroller from "../WindowScroller";
-import createCellPositioner from "./createCellPositioner";
-import Masonry from "./Masonry";
-import styles from "./Masonry.example.css";
+  ContentBoxParagraph,
+} from '../demo/ContentBox';
+import {LabeledInput, InputRow} from '../demo/LabeledInput';
+import {CellMeasurer, CellMeasurerCache} from '../CellMeasurer';
+import AutoSizer from '../AutoSizer';
+import WindowScroller from '../WindowScroller';
+import createCellPositioner from './createCellPositioner';
+import Masonry from './Masonry';
+import styles from './Masonry.example.css';
 
-export default class GridExample extends PureComponent {
+export default class GridExample extends React.PureComponent {
   static contextTypes = {
-    list: PropTypes.instanceOf(Immutable.List).isRequired
+    list: PropTypes.instanceOf(Immutable.List).isRequired,
   };
 
   constructor(props, context) {
@@ -28,16 +28,15 @@ export default class GridExample extends PureComponent {
     this._cache = new CellMeasurerCache({
       defaultHeight: 250,
       defaultWidth: 200,
-      fixedWidth: true
+      fixedWidth: true,
     });
-
-    this._columnHeights = {};
 
     this.state = {
       columnWidth: 200,
       height: 300,
       gutterSize: 10,
-      windowScrollerEnabled: false
+      overscanByPixels: 0,
+      windowScrollerEnabled: false,
     };
 
     this._cellRenderer = this._cellRenderer.bind(this);
@@ -52,19 +51,20 @@ export default class GridExample extends PureComponent {
       columnWidth,
       height,
       gutterSize,
-      windowScrollerEnabled
+      overscanByPixels,
+      windowScrollerEnabled,
     } = this.state;
 
     let child;
 
     if (windowScrollerEnabled) {
       child = (
-        <WindowScroller>
+        <WindowScroller overscanByPixels={overscanByPixels}>
           {this._renderAutoSizer}
         </WindowScroller>
       );
     } else {
-      child = this._renderAutoSizer({ height });
+      child = this._renderAutoSizer({height});
     }
 
     return (
@@ -93,11 +93,14 @@ export default class GridExample extends PureComponent {
                 // It's easier to clear the cache when toggling modes to avoid a partially stale state.
                 this._cache.clearAll();
                 this.setState({
-                  windowScrollerEnabled: event.target.checked
+                  windowScrollerEnabled: event.target.checked,
                 });
               }}
             />
             Use <code>WindowScroller</code>?
+          </label>
+          <label className={styles.checkboxLabel}>
+            <button onClick={this._resetList}>Reset List Data</button>
           </label>
         </ContentBoxParagraph>
 
@@ -107,7 +110,7 @@ export default class GridExample extends PureComponent {
             name="height"
             onChange={event => {
               this.setState({
-                height: parseInt(event.target.value, 10) || 300
+                height: parseInt(event.target.value, 10) || 300,
               });
             }}
             value={height}
@@ -116,17 +119,16 @@ export default class GridExample extends PureComponent {
             label="Column Width"
             name="columnWidth"
             onChange={event => {
-              this._columnHeights = {};
               this._cache.clearAll();
               this.setState(
                 {
-                  columnWidth: parseInt(event.target.value, 10) || 200
+                  columnWidth: parseInt(event.target.value, 10) || 200,
                 },
                 () => {
                   this._calculateColumnCount();
                   this._resetCellPositioner();
                   this._masonry.clearCellPositions();
-                }
+                },
               );
             }}
             value={columnWidth}
@@ -135,19 +137,28 @@ export default class GridExample extends PureComponent {
             label="Gutter Size"
             name="gutterSize"
             onChange={event => {
-              this._columnHeights = {};
               this.setState(
                 {
-                  gutterSize: parseInt(event.target.value, 10) || 10
+                  gutterSize: parseInt(event.target.value, 10) || 10,
                 },
                 () => {
                   this._calculateColumnCount();
                   this._resetCellPositioner();
                   this._masonry.recomputeCellPositions();
-                }
+                },
               );
             }}
             value={gutterSize}
+          />
+          <LabeledInput
+            label="Overscan (px)"
+            name="overscanByPixels"
+            onChange={event => {
+              this.setState({
+                overscanByPixels: parseInt(event.target.value, 10) || 0,
+              });
+            }}
+            value={overscanByPixels}
           />
         </InputRow>
 
@@ -157,14 +168,14 @@ export default class GridExample extends PureComponent {
   }
 
   _calculateColumnCount() {
-    const { columnWidth, gutterSize } = this.state;
+    const {columnWidth, gutterSize} = this.state;
 
     this._columnCount = Math.floor(this._width / (columnWidth + gutterSize));
   }
 
-  _cellRenderer({ index, key, parent, style }) {
-    const { list } = this.context;
-    const { columnWidth } = this.state;
+  _cellRenderer({index, key, parent, style}) {
+    const {list} = this.context;
+    const {columnWidth} = this.state;
 
     const datum = list.get(index % list.size);
 
@@ -174,18 +185,23 @@ export default class GridExample extends PureComponent {
           className={styles.Cell}
           style={{
             ...style,
-            width: columnWidth
-          }}
-        >
+            width: columnWidth,
+          }}>
           <div
             style={{
               backgroundColor: datum.color,
-              borderRadius: "0.5rem",
+              borderRadius: '0.5rem',
               height: datum.size * 3,
-              marginBottom: "0.5rem",
-              width: "100%"
-            }}
-          />
+              marginBottom: '0.5rem',
+              width: '100%',
+              fontSize: 20,
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            {index}
+          </div>
           {datum.random}
         </div>
       </CellMeasurer>
@@ -193,49 +209,51 @@ export default class GridExample extends PureComponent {
   }
 
   _initCellPositioner() {
-    if (typeof this._cellPositioner === "undefined") {
-      const { columnWidth, gutterSize } = this.state;
+    if (typeof this._cellPositioner === 'undefined') {
+      const {columnWidth, gutterSize} = this.state;
 
       this._cellPositioner = createCellPositioner({
         cellMeasurerCache: this._cache,
         columnCount: this._columnCount,
         columnWidth,
-        spacer: gutterSize
+        spacer: gutterSize,
       });
     }
   }
 
-  _onResize({ width }) {
+  _onResize({width}) {
     this._width = width;
 
-    this._columnHeights = {};
     this._calculateColumnCount();
     this._resetCellPositioner();
     this._masonry.recomputeCellPositions();
   }
 
-  _renderAutoSizer({ height, scrollTop }) {
+  _renderAutoSizer({height, scrollTop}) {
     this._height = height;
     this._scrollTop = scrollTop;
+
+    const {overscanByPixels} = this.state;
 
     return (
       <AutoSizer
         disableHeight
+        height={height}
         onResize={this._onResize}
-        scrollTop={this._scrollTop}
-      >
+        overscanByPixels={overscanByPixels}
+        scrollTop={this._scrollTop}>
         {this._renderMasonry}
       </AutoSizer>
     );
   }
 
-  _renderMasonry({ width }) {
+  _renderMasonry({width}) {
     this._width = width;
 
     this._calculateColumnCount();
     this._initCellPositioner();
 
-    const { height, windowScrollerEnabled } = this.state;
+    const {height, overscanByPixels, windowScrollerEnabled} = this.state;
 
     return (
       <Masonry
@@ -245,6 +263,7 @@ export default class GridExample extends PureComponent {
         cellPositioner={this._cellPositioner}
         cellRenderer={this._cellRenderer}
         height={windowScrollerEnabled ? this._height : height}
+        overscanByPixels={overscanByPixels}
         ref={this._setMasonryRef}
         scrollTop={this._scrollTop}
         width={width}
@@ -252,13 +271,27 @@ export default class GridExample extends PureComponent {
     );
   }
 
+  // This is a bit of a hack to simulate newly loaded cells
+  _resetList = () => {
+    const ROW_HEIGHTS = [25, 50, 75, 100];
+
+    const {list} = this.context;
+    list.forEach(datum => {
+      datum.size = ROW_HEIGHTS[Math.floor(Math.random() * ROW_HEIGHTS.length)];
+    });
+
+    this._cache.clearAll();
+    this._resetCellPositioner();
+    this._masonry.clearCellPositions();
+  };
+
   _resetCellPositioner() {
-    const { columnWidth, gutterSize } = this.state;
+    const {columnWidth, gutterSize} = this.state;
 
     this._cellPositioner.reset({
       columnCount: this._columnCount,
       columnWidth,
-      spacer: gutterSize
+      spacer: gutterSize,
     });
   }
 

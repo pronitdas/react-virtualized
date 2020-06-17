@@ -1,34 +1,34 @@
 /** @flow */
 
-import type { Alignment, CellSizeGetter, VisibleCellRange } from "../types";
+import type {Alignment, CellSizeGetter, VisibleCellRange} from '../types';
 
 type CellSizeAndPositionManagerParams = {
-  batchAllCells: boolean,
   cellCount: number,
   cellSizeGetter: CellSizeGetter,
-  estimatedCellSize: number
+  estimatedCellSize: number,
 };
 
 type ConfigureParams = {
   cellCount: number,
-  estimatedCellSize: number
+  estimatedCellSize: number,
+  cellSizeGetter: CellSizeGetter,
 };
 
 type GetUpdatedOffsetForIndex = {
   align: Alignment,
   containerSize: number,
   currentOffset: number,
-  targetIndex: number
+  targetIndex: number,
 };
 
 type GetVisibleCellRangeParams = {
   containerSize: number,
-  offset: number
+  offset: number,
 };
 
 type SizeAndPositionData = {
   offset: number,
-  size: number
+  size: number,
 };
 
 /**
@@ -46,18 +46,15 @@ export default class CellSizeAndPositionManager {
   // Used in deferred mode to track which cells have been queued for measurement.
   _lastBatchedIndex = -1;
 
-  _batchAllCells: boolean;
   _cellCount: number;
   _cellSizeGetter: CellSizeGetter;
   _estimatedCellSize: number;
 
   constructor({
-    batchAllCells = false,
     cellCount,
     cellSizeGetter,
-    estimatedCellSize
+    estimatedCellSize,
   }: CellSizeAndPositionManagerParams) {
-    this._batchAllCells = batchAllCells;
     this._cellSizeGetter = cellSizeGetter;
     this._cellCount = cellCount;
     this._estimatedCellSize = estimatedCellSize;
@@ -67,9 +64,10 @@ export default class CellSizeAndPositionManager {
     return false;
   }
 
-  configure({ cellCount, estimatedCellSize }: ConfigureParams) {
+  configure({cellCount, estimatedCellSize, cellSizeGetter}: ConfigureParams) {
     this._cellCount = cellCount;
     this._estimatedCellSize = estimatedCellSize;
+    this._cellSizeGetter = cellSizeGetter;
   }
 
   getCellCount(): number {
@@ -95,7 +93,7 @@ export default class CellSizeAndPositionManager {
   getSizeAndPositionOfCell(index: number): SizeAndPositionData {
     if (index < 0 || index >= this._cellCount) {
       throw Error(
-        `Requested index ${index} is outside of range 0..${this._cellCount}`
+        `Requested index ${index} is outside of range 0..${this._cellCount}`,
       );
     }
 
@@ -106,7 +104,7 @@ export default class CellSizeAndPositionManager {
         lastMeasuredCellSizeAndPosition.size;
 
       for (var i = this._lastMeasuredIndex + 1; i <= index; i++) {
-        let size = this._cellSizeGetter({ index: i });
+        let size = this._cellSizeGetter({index: i});
 
         // undefined or NaN probably means a logic error in the size getter.
         // null means we're using CellMeasurer and haven't yet measured a given index.
@@ -115,14 +113,14 @@ export default class CellSizeAndPositionManager {
         } else if (size === null) {
           this._cellSizeAndPositionData[i] = {
             offset,
-            size: 0
+            size: 0,
           };
 
           this._lastBatchedIndex = index;
         } else {
           this._cellSizeAndPositionData[i] = {
             offset,
-            size
+            size,
           };
 
           offset += size;
@@ -140,7 +138,7 @@ export default class CellSizeAndPositionManager {
       ? this._cellSizeAndPositionData[this._lastMeasuredIndex]
       : {
           offset: 0,
-          size: 0
+          size: 0,
         };
   }
 
@@ -172,10 +170,10 @@ export default class CellSizeAndPositionManager {
    * @return Offset to use to ensure the specified cell is visible
    */
   getUpdatedOffsetForIndex({
-    align = "auto",
+    align = 'auto',
     containerSize,
     currentOffset,
-    targetIndex
+    targetIndex,
   }: GetUpdatedOffsetForIndex): number {
     if (containerSize <= 0) {
       return 0;
@@ -188,13 +186,13 @@ export default class CellSizeAndPositionManager {
     let idealOffset;
 
     switch (align) {
-      case "start":
+      case 'start':
         idealOffset = maxOffset;
         break;
-      case "end":
+      case 'end':
         idealOffset = minOffset;
         break;
-      case "center":
+      case 'center':
         idealOffset = maxOffset - (containerSize - datum.size) / 2;
         break;
       default:
@@ -208,16 +206,7 @@ export default class CellSizeAndPositionManager {
   }
 
   getVisibleCellRange(params: GetVisibleCellRangeParams): VisibleCellRange {
-    // Advanced use-cases (eg CellMeasurer) require batched measurements to determine accurate sizes.
-    // eg we can't know a row's height without measuring the height of all columns within that row.
-    if (this._batchAllCells) {
-      return {
-        start: 0,
-        stop: this._cellCount - 1
-      };
-    }
-
-    let { containerSize, offset } = params;
+    let {containerSize, offset} = params;
 
     const totalSize = this.getTotalSize();
 
@@ -241,7 +230,7 @@ export default class CellSizeAndPositionManager {
 
     return {
       start,
-      stop
+      stop,
     };
   }
 
@@ -289,7 +278,7 @@ export default class CellSizeAndPositionManager {
     return this._binarySearch(
       Math.min(index, this._cellCount - 1),
       Math.floor(index / 2),
-      offset
+      offset,
     );
   }
 

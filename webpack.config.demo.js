@@ -1,45 +1,45 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const path = require('path')
-const webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   devtool: 'source-map',
   entry: {
-    demo: './source/demo/index'
+    demo: './source/demo/index',
   },
   output: {
-    path: 'build',
-    filename: 'static/[name].js'
+    path: path.join(__dirname, 'build'),
+    filename: 'static/[name].js',
   },
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html',
       inject: true,
-      template: './index.html'
+      template: './index.html',
     }),
     new webpack.DefinePlugin({
       'process.env': {
-        'NODE_ENV': JSON.stringify('production')
-      }
-    })
+        NODE_ENV: JSON.stringify('production'),
+      },
+    }),
   ],
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loaders: ['babel'],
-        include: path.join(__dirname, 'source')
+        use: ['babel-loader'],
+        include: path.join(__dirname, 'source'),
       },
       {
         test: /\.css$/,
-        loaders: ['style', 'css?modules&importLoaders=1', 'postcss'],
-        include: path.join(__dirname, 'source')
+        use: ['style-loader', 'css-loader?modules', 'postcss-loader'],
+        include: path.join(__dirname, 'source'),
       },
       {
         test: /\.css$/,
-        loaders: ['style', 'css?importLoaders=1&minimize=false'],
-        include: path.join(__dirname, 'styles.css')
-      }
-    ]
-  }
-}
+        use: ['style-loader', 'css-loader'],
+        include: path.join(__dirname, 'styles.css'),
+      },
+    ],
+  },
+};

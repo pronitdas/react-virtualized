@@ -1,5 +1,7 @@
 /** @flow */
 
+import type {CellMeasureCache} from './types';
+
 export const DEFAULT_HEIGHT = 30;
 export const DEFAULT_WIDTH = 100;
 
@@ -14,21 +16,21 @@ type CellMeasurerCacheParams = {
   fixedWidth?: boolean,
   minHeight?: number,
   minWidth?: number,
-  keyMapper?: KeyMapper
+  keyMapper?: KeyMapper,
 };
 
 type Cache = {
-  [key: any]: number
+  [key: any]: number,
 };
 
 type IndexParam = {
-  index: number
+  index: number,
 };
 
 /**
  * Caches measurements for a given cell.
  */
-export default class CellMeasurerCache {
+export default class CellMeasurerCache implements CellMeasureCache {
   _cellHeightCache: Cache = {};
   _cellWidthCache: Cache = {};
   _columnWidthCache: Cache = {};
@@ -51,7 +53,7 @@ export default class CellMeasurerCache {
       fixedWidth,
       keyMapper,
       minHeight,
-      minWidth
+      minWidth,
     } = params;
 
     this._hasFixedHeight = fixedHeight === true;
@@ -62,33 +64,33 @@ export default class CellMeasurerCache {
 
     this._defaultHeight = Math.max(
       this._minHeight,
-      typeof defaultHeight === "number" ? defaultHeight : DEFAULT_HEIGHT
+      typeof defaultHeight === 'number' ? defaultHeight : DEFAULT_HEIGHT,
     );
     this._defaultWidth = Math.max(
       this._minWidth,
-      typeof defaultWidth === "number" ? defaultWidth : DEFAULT_WIDTH
+      typeof defaultWidth === 'number' ? defaultWidth : DEFAULT_WIDTH,
     );
 
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== 'production') {
       if (this._hasFixedHeight === false && this._hasFixedWidth === false) {
         console.warn(
           "CellMeasurerCache should only measure a cell's width or height. " +
-            "You have configured CellMeasurerCache to measure both. " +
-            "This will result in poor performance."
+            'You have configured CellMeasurerCache to measure both. ' +
+            'This will result in poor performance.',
         );
       }
 
       if (this._hasFixedHeight === false && this._defaultHeight === 0) {
         console.warn(
-          "Fixed height CellMeasurerCache should specify a :defaultHeight greater than 0. " +
-            "Failing to do so will lead to unnecessary layout and poor performance."
+          'Fixed height CellMeasurerCache should specify a :defaultHeight greater than 0. ' +
+            'Failing to do so will lead to unnecessary layout and poor performance.',
         );
       }
 
       if (this._hasFixedWidth === false && this._defaultWidth === 0) {
         console.warn(
-          "Fixed width CellMeasurerCache should specify a :defaultWidth greater than 0. " +
-            "Failing to do so will lead to unnecessary layout and poor performance."
+          'Fixed width CellMeasurerCache should specify a :defaultWidth greater than 0. ' +
+            'Failing to do so will lead to unnecessary layout and poor performance.',
         );
       }
     }
@@ -112,10 +114,10 @@ export default class CellMeasurerCache {
     this._columnCount = 0;
   }
 
-  columnWidth = ({ index }: IndexParam) => {
+  columnWidth = ({index}: IndexParam) => {
     const key = this._keyMapper(0, index);
 
-    return this._columnWidthCache.hasOwnProperty(key)
+    return this._columnWidthCache[key] !== undefined
       ? this._columnWidthCache[key]
       : this._defaultWidth;
   };
@@ -142,7 +144,7 @@ export default class CellMeasurerCache {
     } else {
       const key = this._keyMapper(rowIndex, columnIndex);
 
-      return this._cellHeightCache.hasOwnProperty(key)
+      return this._cellHeightCache[key] !== undefined
         ? Math.max(this._minHeight, this._cellHeightCache[key])
         : this._defaultHeight;
     }
@@ -154,7 +156,7 @@ export default class CellMeasurerCache {
     } else {
       const key = this._keyMapper(rowIndex, columnIndex);
 
-      return this._cellWidthCache.hasOwnProperty(key)
+      return this._cellWidthCache[key] !== undefined
         ? Math.max(this._minWidth, this._cellWidthCache[key])
         : this._defaultWidth;
     }
@@ -163,18 +165,23 @@ export default class CellMeasurerCache {
   has(rowIndex: number, columnIndex: number = 0): boolean {
     const key = this._keyMapper(rowIndex, columnIndex);
 
-    return this._cellHeightCache.hasOwnProperty(key);
+    return this._cellHeightCache[key] !== undefined;
   }
 
-  rowHeight = ({ index }: IndexParam) => {
+  rowHeight = ({index}: IndexParam) => {
     const key = this._keyMapper(index, 0);
 
-    return this._rowHeightCache.hasOwnProperty(key)
+    return this._rowHeightCache[key] !== undefined
       ? this._rowHeightCache[key]
       : this._defaultHeight;
   };
 
-  set(rowIndex: number, columnIndex: number, width: number, height: number) {
+  set(
+    rowIndex: number,
+    columnIndex: number,
+    width: number,
+    height: number,
+  ): void {
     const key = this._keyMapper(rowIndex, columnIndex);
 
     if (columnIndex >= this._columnCount) {

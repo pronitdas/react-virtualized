@@ -1,11 +1,11 @@
 /** @flow */
-import PropTypes from "prop-types";
-import { PureComponent } from "react";
+import PropTypes from 'prop-types';
+import * as React from 'react';
 
 /**
  * High-order component that auto-calculates column-widths for `Grid` cells.
  */
-export default class ColumnSizer extends PureComponent {
+export default class ColumnSizer extends React.PureComponent {
   static propTypes = {
     /**
      * Function responsible for rendering a virtualized Grid.
@@ -28,7 +28,7 @@ export default class ColumnSizer extends PureComponent {
     columnCount: PropTypes.number.isRequired,
 
     /** Width of Grid or Table child */
-    width: PropTypes.number.isRequired
+    width: PropTypes.number.isRequired,
   };
 
   constructor(props, context) {
@@ -38,7 +38,7 @@ export default class ColumnSizer extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    const { columnMaxWidth, columnMinWidth, columnCount, width } = this.props;
+    const {columnMaxWidth, columnMinWidth, columnCount, width} = this.props;
 
     if (
       columnMaxWidth !== prevProps.columnMaxWidth ||
@@ -58,7 +58,7 @@ export default class ColumnSizer extends PureComponent {
       columnMaxWidth,
       columnMinWidth,
       columnCount,
-      width
+      width,
     } = this.props;
 
     const safeColumnMinWidth = columnMinWidth || 1;
@@ -78,14 +78,14 @@ export default class ColumnSizer extends PureComponent {
       adjustedWidth,
       columnWidth,
       getColumnWidth: () => columnWidth,
-      registerChild: this._registerChild
+      registerChild: this._registerChild,
     });
   }
 
   _registerChild(child) {
-    if (child && typeof child.recomputeGridSize !== "function") {
+    if (child && typeof child.recomputeGridSize !== 'function') {
       throw Error(
-        "Unexpected child type registered; only Grid/MultiGrid children are supported."
+        'Unexpected child type registered; only Grid/MultiGrid children are supported.',
       );
     }
 

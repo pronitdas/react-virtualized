@@ -1,17 +1,17 @@
-import PropTypes from "prop-types";
-import { PureComponent } from "react";
+import PropTypes from 'prop-types';
+import * as React from 'react';
 
 /**
  * HOC that simplifies the process of synchronizing scrolling between two or more virtualized components.
  */
-export default class ScrollSync extends PureComponent {
+export default class ScrollSync extends React.PureComponent {
   static propTypes = {
     /**
      * Function responsible for rendering 2 or more virtualized components.
      * This function should implement the following signature:
      * ({ onScroll, scrollLeft, scrollTop }) => PropTypes.element
      */
-    children: PropTypes.func.isRequired
+    children: PropTypes.func.isRequired,
   };
 
   constructor(props, context) {
@@ -23,21 +23,21 @@ export default class ScrollSync extends PureComponent {
       scrollHeight: 0,
       scrollLeft: 0,
       scrollTop: 0,
-      scrollWidth: 0
+      scrollWidth: 0,
     };
 
     this._onScroll = this._onScroll.bind(this);
   }
 
   render() {
-    const { children } = this.props;
+    const {children} = this.props;
     const {
       clientHeight,
       clientWidth,
       scrollHeight,
       scrollLeft,
       scrollTop,
-      scrollWidth
+      scrollWidth,
     } = this.state;
 
     return children({
@@ -47,7 +47,7 @@ export default class ScrollSync extends PureComponent {
       scrollHeight,
       scrollLeft,
       scrollTop,
-      scrollWidth
+      scrollWidth,
     });
   }
 
@@ -57,7 +57,7 @@ export default class ScrollSync extends PureComponent {
     scrollHeight,
     scrollLeft,
     scrollTop,
-    scrollWidth
+    scrollWidth,
   }) {
     this.setState({
       clientHeight,
@@ -65,7 +65,7 @@ export default class ScrollSync extends PureComponent {
       scrollHeight,
       scrollLeft,
       scrollTop,
-      scrollWidth
+      scrollWidth,
     });
   }
 }
